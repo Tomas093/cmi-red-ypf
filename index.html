@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMI Red YPF</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{
+  --ypf:#0f5da8; --ypf-deep:#0a3f78; --navy:#0c2038; --ink:#14263b; --muted:#465a6e; --rule:#dfe6ee;
+  --led:#ffb21a; --led-bg:#0b1522;
+  --alta:#c4372c; --media:#93600a; --mbaja:#4b7a27; --baja:#23804a;
+  --face:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#cfe3ef}
+body{font-family:"Barlow",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+::selection{background:var(--ypf);color:#fff}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;pointer-events:none}
+
+/* ================= TÓTEM (panel de contenido) =================
+   Un cartel de estación: marco azul noche, franja YPF con el título,
+   cara blanca con el contenido y filas tipo pizarra de precios. */
+.slide{position:absolute;left:56px;top:56px;width:var(--w,800px);max-height:888px;
+  display:flex;flex-direction:column;background:var(--navy);border-radius:14px;padding:10px;
+  box-shadow:0 18px 40px -12px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.25);
+  opacity:0;transform:translateY(18px);pointer-events:none;
+  transition:opacity .4s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.16,1,.3,1)}
+.slide.active{opacity:1;transform:none;pointer-events:auto;transition-delay:.25s}
+.slide header{background:var(--ypf);border-radius:7px 7px 0 0;padding:22px 30px 20px;color:#fff}
+.slide h1{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:58px;line-height:1.02;letter-spacing:-.005em;text-wrap:balance}
+.slide header p{font-size:24px;font-weight:500;line-height:1.3;margin-top:8px;color:#e3eefa;max-width:44ch}
+.face{background:var(--face);border-radius:0 0 7px 7px;padding:26px 30px 30px;overflow:hidden}
+.face > * + *{margin-top:18px}
+.slide .in{opacity:1}
+
+p.t{font-size:26px;line-height:1.38;color:var(--ink);max-width:46ch}
+p.t b{font-weight:700;color:var(--navy)}
+.small{font-size:20px;color:var(--muted);line-height:1.35}
+
+/* filas tipo pizarra de precios */
+.board{background:var(--led-bg);border-radius:8px;padding:6px 18px}
+.board .r{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.board .r:last-child{border-bottom:0}
+.board .k{font-size:23px;font-weight:600;color:#d7e3ef;letter-spacing:.01em}
+.board .k small{display:block;font-size:18px;font-weight:500;color:#9db0c3;margin-top:2px}
+.board .v{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:44px;line-height:1;color:var(--led);font-variant-numeric:tabular-nums;letter-spacing:.02em;white-space:nowrap}
+.board .v.down{color:#ff6b57}
+
+/* cinco fuerzas de Porter */
+.porter{display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr;grid-template-rows:auto 26px auto 26px auto;
+  grid-template-areas:". . t . ." ". . at . ." "l al c ar r" ". . ab . ." ". . b . .";align-items:center}
+.pf{background:#eef4fa;border-radius:8px;padding:12px 12px 14px;text-align:center}
+.pf h2{font-family:"Barlow Condensed",sans-serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1.05}
+.pf p{font-size:18px;line-height:1.25;color:var(--muted);margin:4px 0 8px}
+.pf.core{background:var(--navy)}
+.pf.core h2{color:#fff;font-size:30px}
+.pf.core p{color:#c9d6e3}
+.ar{justify-self:center;align-self:center;width:0;height:0;border:9px solid transparent}
+.ar.d{border-top:12px solid #2c4a6d;border-bottom:0}
+.ar.u{border-bottom:12px solid #2c4a6d;border-top:0}
+.ar.r{border-left:12px solid #2c4a6d;border-right:0}
+.ar.l{border-right:12px solid #2c4a6d;border-left:0}
+
+/* listas con nivel */
+.lv{display:grid;grid-template-columns:1fr auto;gap:0 18px}
+.lv > div{display:contents}
+.lv h2,.lv span{padding:13px 0;border-bottom:1px solid var(--rule)}
+.lv > div:last-child > *{border-bottom:0}
+.lv h2{font-family:"Barlow Condensed",sans-serif;font-size:30px;font-weight:700;color:var(--navy);line-height:1.05;grid-column:1}
+.lv h2 small{display:block;font-family:"Barlow",sans-serif;font-size:21px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.3}
+.lv span{grid-column:2;align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+.pill{font-style:normal;font-size:17px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:5px 11px;border-radius:5px;white-space:nowrap}
+.alta{background:var(--alta)}.media{background:var(--media)}.mbaja{background:var(--mbaja)}.baja{background:var(--baja)}
+
+.note{background:#eef4fa;border-radius:8px;padding:16px 20px;font-size:23px;line-height:1.38;color:var(--ink)}
+.note b{color:var(--navy)}
+
+
+/* competencia */
+.rivals{width:100%;border-collapse:collapse}
+.rivals td{padding:11px 0;border-bottom:1px solid var(--rule);vertical-align:middle;font-size:21px;line-height:1.3}
+.rivals tr:last-child td{border-bottom:0}
+.rivals td.who{width:118px;padding-right:12px}
+.rivals td.who img{display:block;height:30px;max-width:104px;object-fit:contain}
+.rivals td.who b{font-family:"Barlow Condensed",sans-serif;font-size:24px;color:var(--muted)}
+.rivals td.num{width:120px;text-align:right;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:26px;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rivals td.num small{display:block;font-family:"Barlow",sans-serif;font-size:17px;font-weight:500;color:var(--muted)}
+.rivals td.do{padding-left:18px}
+
+/* mapa estratégico */
+.map{display:grid;grid-template-columns:118px repeat(3,1fr);gap:7px 9px}
+.map .th{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:var(--ypf);text-align:center;line-height:1.1;align-self:end;padding-bottom:2px}
+.map .lab{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:var(--navy);display:flex;align-items:center;padding-left:12px;border-radius:7px}
+.map .c{display:flex;flex-direction:column;gap:6px;justify-content:center;border-radius:7px;padding:8px}
+.map .n{background:#fff;border:1.5px solid #2c4a6d;border-radius:6px;padding:6px 8px;font-size:17px;font-weight:600;line-height:1.18;text-align:center}
+.map .n b{color:var(--ypf);font-weight:800}
+.p-fin{background:#dce8f8}.p-cli{background:#dcefe2}.p-pro{background:#fbefd8}.p-apr{background:#ebe3f5}
+.map .up{grid-column:2 / span 3;display:grid;grid-template-columns:repeat(3,1fr);height:14px}
+.map .up i{display:block;width:0;height:0;margin:0 auto;border:8px solid transparent;border-top:0;border-bottom:10px solid #2c4a6d}
+
+/* indicadores */
+.kpi{width:100%;border-collapse:collapse;background:var(--led-bg);border-radius:8px}
+.kpi td{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.09);font-size:21px;line-height:1.25;vertical-align:middle;color:#d7e3ef}
+.kpi td:first-child{padding-left:16px}.kpi td:last-child{padding-right:16px}
+.kpi tr:last-child td{border-bottom:0}
+.kpi td.id{width:58px}
+.kpi td.id span{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:21px;color:#fff;background:var(--ypf);border-radius:5px;padding:1px 8px}
+.kpi td.ty{width:104px;font-size:17px;font-weight:600;color:#9db0c3}
+.kpi td.goal{width:140px;text-align:right;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:32px;color:var(--led);white-space:nowrap;font-variant-numeric:tabular-nums}
+.kpi td.now{width:160px;text-align:right;font-size:18px;color:#9db0c3;padding-left:12px}
+
+/* arquitectura */
+.flow{display:grid;grid-template-columns:44px 1fr;gap:0 16px}
+.flow > div{display:contents}
+.flow .dot{display:flex;flex-direction:column;align-items:center}
+.flow .dot i{width:40px;height:40px;border-radius:50%;background:var(--c,var(--ypf));color:#fff;font-style:normal;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:21px;display:grid;place-items:center;flex:none}
+.flow .dot::after{content:"";flex:1;width:2px;background:#c4d2e0;margin:3px 0}
+.flow .last .dot::after{display:none}
+.flow h2{font-family:"Barlow Condensed",sans-serif;font-size:27px;font-weight:700;color:var(--navy);line-height:1.05;padding-top:6px}
+.flow p{font-size:20px;color:var(--muted);line-height:1.3;padding-bottom:12px}
+
+/* estrella */
+.star{position:relative;height:430px}
+.star svg{position:absolute;inset:0;width:100%;height:100%}
+.star .f{position:absolute;left:50%;top:50%;translate:-50% -50%;width:300px;background:#e3f3e8;border:2.5px solid #23804a;border-radius:9px;padding:12px;text-align:center}
+.star .f h2{font-family:"Barlow Condensed",sans-serif;font-size:24px;color:#18603a}
+.star .f p{font-size:18px;color:#2c4a3a;line-height:1.3;margin-top:3px}
+.star .d{position:absolute;translate:-50% -50%;background:#fff;border:2px solid #6c8fb8;border-radius:7px;padding:6px 11px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:var(--navy);white-space:nowrap;text-align:center}
+.star .d small{display:block;font-family:"Barlow",sans-serif;font-size:16px;color:var(--alta);font-weight:700;letter-spacing:.06em}
+
+/* calidad */
+.qa{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:start}
+.chk{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.chk:last-child{border-bottom:0}
+.chk i{flex:none;width:28px;height:28px;border-radius:50%;border:3px solid #c3ced8;display:grid;place-items:center}
+.chk i svg{width:15px;height:15px;opacity:0}
+.slide.active .chk i{animation:on .25s ease both;animation-delay:calc(var(--i) * 130ms + 900ms)}
+.slide.active .chk i svg{animation:fade .2s ease both;animation-delay:calc(var(--i) * 130ms + 980ms)}
+@keyframes on{to{background:#23804a;border-color:#23804a}}
+@keyframes fade{to{opacity:1}}
+.chk h2{flex:1;font-size:19px;font-weight:600;color:var(--navy);line-height:1.15}
+.chk em{font-style:normal;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:21px;color:#1d7a43;font-variant-numeric:tabular-nums}
+.a1{background:var(--led-bg);border-radius:8px;padding:18px;text-align:center;color:#d7e3ef}
+.a1 .big{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:96px;line-height:1;color:var(--led)}
+.a1 p{font-size:18px;line-height:1.3}
+.steps{counter-reset:s;list-style:none}
+.steps li{counter-increment:s;position:relative;padding:7px 0 7px 36px;font-size:19px;line-height:1.3}
+.steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center}
+
+/* portada / cierre */
+.cover header{padding:30px 34px 26px}
+.cover .logo{display:block;width:170px;margin-bottom:22px;border-radius:3px}
+.cover h1{font-size:68px}
+.cover .who{font-size:24px;line-height:1.5;color:var(--ink)}
+.cover .who b{font-weight:700;color:var(--navy)}
+
+/* barra de avance: cartel verde de ruta */
+#prog{position:absolute;left:56px;bottom:30px;display:flex;align-items:center;gap:2px;background:#1c6b3c;border:3px solid #fff;border-radius:8px;padding:6px 8px;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+#prog span{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.62);padding:2px 12px;border-radius:4px;transition:color .3s,background .3s}
+#prog span.on{color:#1c6b3c;background:#fff}
+#counter{position:absolute;right:52px;bottom:30px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:24px;color:#fff;background:var(--navy);border-radius:8px;padding:6px 14px;font-variant-numeric:tabular-nums;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+
+/* capturas (?shot): sin animaciones de entrada */
+.shot .slide,.shot .slide .in,.shot .chk i,.shot .chk i svg{transition:none!important;animation-duration:0s!important;animation-delay:0s!important}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="tick" viewBox="0 0 24 24"><path d="M4 12.5 10 18 20 6" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<div id="stage">
+
+<!-- 1 · PORTADA -->
+<section class="slide cover" data-cam="portada" data-part="0" style="--w:780px">
+  <header>
+    <img class="logo in" src="assets/logo-ypf.svg" alt="YPF" style="--i:0">
+    <h1 class="in" style="--i:1">Cuadro de Mando Integral para la Red de Estaciones de Servicio</h1>
+  </header>
+  <div class="face">
+    <p class="who in" style="--i:2">Trabajo Práctico Integrador · <b>Gestión Estratégica Impulsada por Datos</b><br>Universidad Austral · Facultad de Ingeniería<br><b>Franco Descalzo · Tomás Monteiro · Ignacio Siaba</b></p>
+    <div class="board in" style="--i:3">
+      <div class="r"><span class="k">Parte I</span><span class="v">ESTRATEGIA</span></div>
+      <div class="r"><span class="k">Parte II</span><span class="v">TABLERO</span></div>
+      <div class="r"><span class="k">Parte III</span><span class="v">DATOS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · ESCENARIO -->
+<section class="slide" data-cam="estacion" data-part="0" style="--w:700px">
+  <header><h1 class="in" style="--i:0">La red YPF</h1><p class="in" style="--i:1">Resolver toda la parada del conductor en un solo lugar.</p></header>
+  <div class="face">
+    <div class="board in" style="--i:2">
+      <div class="r"><span class="k">Estaciones<small>de 5.387 en el país</small></span><span class="v">1.660</span></div>
+      <div class="r"><span class="k">Volumen vendido</span><span class="v">55,1%</span></div>
+      <div class="r"><span class="k">Usuarios de la App YPF</span><span class="v">+3 M</span></div>
+      <div class="r"><span class="k">Tiendas FULL · Boxes</span><span class="v">1.168 · 428</span></div>
+      <div class="r"><span class="k">Demanda<small>meses seguidos en baja (2026)</small></span><span class="v down">7</span></div>
+    </div>
+    <p class="small in" style="--i:3">Playa, tienda FULL, Boxes y la App: combustible, comida, mantenimiento y pago en la misma parada.</p>
+  </div>
+</section>
+
+<!-- 3 · CINCO FUERZAS -->
+<section class="slide" data-cam="fuerzas" data-part="0" style="--w:560px">
+  <header><h1 class="in" style="--i:0">¿Qué tan atractivo es el sector?</h1><p class="in" style="--i:1">Las cinco fuerzas de Porter, vistas desde arriba.</p></header>
+  <div class="face">
+    <p class="t in" style="--i:2">La fuerza que más pesa es la <b>rivalidad</b>: la demanda cae y 4 empresas tienen más del 90% del mercado.</p>
+    <p class="note in" style="--i:3"><b>Qué implica:</b> cada litro se le saca a otro. La rentabilidad tiene que salir del costo.</p>
+  </div>
+</section>
+
+<!-- 4 · ESTRATEGIA -->
+<section class="slide" data-cam="estrategia" data-part="0" style="--w:700px">
+  <header><h1 class="in" style="--i:0">Liderazgo general en costos</h1><p class="in" style="--i:1">YPF compite en todo el mercado y gana porque le cuesta menos, no por ser exclusiva.</p></header>
+  <div class="face">
+    <div class="board in" style="--i:2">
+      <div class="r"><span class="k">Escala: participación en volumen</span><span class="v">55%</span></div>
+      <div class="r"><span class="k">Refinación propia del país</span><span class="v">+50%</span></div>
+    </div>
+    <p class="t in" style="--i:3">El cliente es sensible al precio y la demanda cae: <b>la rentabilidad sale del costo</b>.</p>
+    <p class="t in" style="--i:4">Tres formatos, una sola estrategia: <b>Refiplus, Núcleo y Black</b>.</p>
+  </div>
+</section>
+
+<!-- 5 · REFIPLUS -->
+<section class="slide" data-cam="refiplus" data-part="0" style="--w:640px">
+  <header><h1 class="in" style="--i:0">Refiplus</h1><p class="in" style="--i:1">Bajo costo, para zonas alejadas.</p></header>
+  <div class="face">
+    <p class="t in" style="--i:2">Carga rápida y autodespacho, sin servicios ni infraestructura pesada.</p>
+    <p class="t in" style="--i:3"><b>La regla:</b> Inversión mínima por estación.</p>
+    <p class="small in" style="--i:4">Las 73 estaciones de Refinor pasan a Refiplus.</p>
+  </div>
+</section>
+
+<!-- 6 · NÚCLEO -->
+<section class="slide" data-cam="nucleo" data-part="0" style="--w:640px">
+  <header><h1 class="in" style="--i:0">Núcleo</h1><p class="in" style="--i:1">El formato masivo: concentra el volumen.</p></header>
+  <div class="face">
+    <p class="t in" style="--i:2">Playa con autodespacho, tienda FULL y Boxes.</p>
+    <p class="t in" style="--i:3"><b>La regla:</b> Toda inversión tiene que bajar el costo neto por litro.</p>
+    <p class="small in" style="--i:4">Costo neto = costo de la estación menos lo que aporta la tienda.</p>
+  </div>
+</section>
+
+<!-- 7 · BLACK -->
+<section class="slide" data-cam="black" data-part="0" style="--w:640px">
+  <header><h1 class="in" style="--i:0">YPF Black</h1><p class="in" style="--i:1">Premium: la vitrina de la marca.</p></header>
+  <div class="face">
+    <p class="t in" style="--i:2">Atención en pista, tecnología y gastronomía de alta gama en unas <b>16 estaciones</b>.</p>
+    <p class="t in" style="--i:3"><b>La regla:</b> Cupo fijo, pagado por inversores privados: sus costos no pasan al resto.</p>
+  </div>
+</section>
+
+<!-- 8 · COMPETENCIA -->
+<section class="slide" data-cam="rivales" data-part="0" style="--w:600px">
+  <header><h1 class="in" style="--i:0">¿Dónde damos la pelea?</h1></header>
+  <div class="face">
+    <table class="rivals in" style="--i:1">
+      <tr><td class="who"><img src="assets/logo-shell.svg" alt="Shell"></td><td class="num">22,7%<small>894 bocas</small></td><td class="do">Fuerte en premium urbano: <b>no pelear ahí</b>, ganar en el masivo.</td></tr>
+      <tr><td class="who"><img src="assets/logo-axion.png" alt="Axion"></td><td class="num">12,2%<small>549 bocas</small></td><td class="do">Apuesta a las rutas: <b>defenderlas</b> con tienda y servicio.</td></tr>
+      <tr><td class="who"><img src="assets/logo-puma.svg" alt="Puma Energy"></td><td class="num">~5%<small>416 bocas</small></td><td class="do">Detrás está Trafigura.</td></tr>
+      <tr><td class="who"><b>Blancas</b></td><td class="num">s/d<small>986 bocas</small></td><td class="do">Sin marca ni escala: <b>ofrecerles Refiplus</b>.</td></tr>
+    </table>
+    <p class="t in" style="--i:2"><b>Prioridad de clientes:</b> viajero de ruta, particular urbano (identificado en la App), flotas y agro, y transporte profesional.</p>
+  </div>
+</section>
+
+<!-- 9 · MAPA ESTRATÉGICO -->
+<section class="slide" data-cam="full" data-part="1" style="--w:960px">
+  <header><h1 class="in" style="--i:0">Mapa estratégico: se lee de abajo hacia arriba</h1></header>
+  <div class="face">
+    <div class="map">
+      <div></div><div class="th in" style="--i:1">Litro más eficiente</div><div class="th in" style="--i:1">Parada más rentable</div><div class="th in" style="--i:1">Cliente identificado</div>
+      <div class="lab p-fin in" style="--i:8;grid-row:span 2">Financiera</div>
+      <div class="c p-fin in" style="--i:8;grid-column:span 3"><div class="n" style="width:380px;margin:0 auto"><b>F1</b> Aumentar el margen total de la red</div></div>
+      <div class="c p-fin in" style="--i:8"><div class="n"><b>F2</b> Bajar costo por m³</div></div>
+      <div class="c p-fin in" style="--i:8"><div class="n"><b>F3</b> Crecer ingresos no combustibles</div></div>
+      <div class="c p-fin in" style="--i:8"><div class="n"><b>F4</b> Controlar riesgo de precio</div></div>
+      <div class="up in" style="--i:7"><i></i><i></i><i></i></div>
+      <div class="lab p-cli in" style="--i:6">Cliente</div>
+      <div class="c p-cli in" style="--i:6"><div class="n"><b>C1</b> Sostener participación</div><div class="n"><b>C4</b> Valor a la par por formato</div></div>
+      <div class="c p-cli in" style="--i:6"><div class="n"><b>C3</b> Más compra en tienda</div></div>
+      <div class="c p-cli in" style="--i:6"><div class="n"><b>C2</b> Retener identificados</div></div>
+      <div class="up in" style="--i:5"><i></i><i></i><i></i></div>
+      <div class="lab p-pro in" style="--i:4">Procesos</div>
+      <div class="c p-pro in" style="--i:4"><div class="n"><b>P2</b> Operar la boca con eficiencia</div><div class="n"><b>P5</b> Operadores rentables</div></div>
+      <div class="c p-pro in" style="--i:4"><div class="n"><b>P3</b> Llevar al cliente a la tienda</div></div>
+      <div class="c p-pro in" style="--i:4"><div class="n"><b>P1</b> Precio por zona y horario</div><div class="n"><b>P4</b> Identificar al cliente</div></div>
+      <div class="up in" style="--i:3"><i></i><i></i><i></i></div>
+      <div class="lab p-apr in" style="--i:2">Aprendizaje</div>
+      <div class="c p-apr in" style="--i:2"><div class="n"><b>A2</b> Personal capacitado</div></div>
+      <div class="c p-apr in" style="--i:2"><div class="n"><b>A1</b> Dato confiable</div></div>
+      <div class="c p-apr in" style="--i:2"><div class="n"><b>A3</b> Decidir con el tablero</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · INDICADORES -->
+<section class="slide" data-cam="full2" data-part="1" style="--w:860px">
+  <header><h1 class="in" style="--i:0">16 objetivos, cada uno con su meta a diciembre de 2027</h1></header>
+  <div class="face">
+    <table class="kpi in" style="--i:1">
+      <tr><td class="id"><span>F1</span></td><td>Margen total de la red</td><td class="ty">resultado</td><td class="goal">+5% real</td><td class="now">base a medir</td></tr>
+      <tr><td class="id"><span>F2</span></td><td>Costo operativo por m³</td><td class="ty">resultado</td><td class="goal">−5% real</td><td class="now">base a medir</td></tr>
+      <tr><td class="id"><span>F3</span></td><td>Ingresos no combustibles</td><td class="ty">resultado</td><td class="goal">5%</td><td class="now">hoy ≈ 4%</td></tr>
+      <tr><td class="id"><span>F4</span></td><td>Brecha vs. precio de importar</td><td class="ty">actuación</td><td class="goal">≤ 10%</td><td class="now">hoy 15–20%</td></tr>
+      <tr><td class="id"><span>C1</span></td><td>Participación de mercado</td><td class="ty">resultado</td><td class="goal">≥ 55%</td><td class="now">hoy 55,1%</td></tr>
+      <tr><td class="id"><span>C4</span></td><td>Precio YPF / competidor</td><td class="ty">actuación</td><td class="goal">≤ 1,00</td><td class="now">Núcleo y Refiplus</td></tr>
+      <tr><td class="id"><span>P1</span></td><td>Estaciones con precio por modelo</td><td class="ty">actuación</td><td class="goal">100%</td><td class="now">Núcleo y Refiplus</td></tr>
+      <tr><td class="id"><span>P4</span></td><td>Cargas con cliente identificado</td><td class="ty">actuación</td><td class="goal">55%</td><td class="now">ref. ~40% digital</td></tr>
+    </table>
+    <p class="small in" style="--i:2">7 indicadores de resultado y 9 de actuación. Sin dato público, la base se mide en el 1.er trimestre de 2027.</p>
+  </div>
+</section>
+
+<!-- 11 · ARQUITECTURA -->
+<section class="slide" data-cam="carga" data-part="2" style="--w:700px">
+  <header><h1 class="in" style="--i:0">Arquitectura: el viaje de una carga</h1></header>
+  <div class="face">
+    <div class="flow in" style="--i:1">
+      <div><span class="dot"><i>1</i></span><div><h2>Surtidor o App</h2><p>se registra la carga</p></div></div>
+      <div><span class="dot"><i>2</i></span><div><h2>Streaming</h2><p>llega en minutos; el resto, por lotes diarios</p></div></div>
+      <div><span class="dot"><i style="--c:#9a6a37">B</i></span><div><h2>Bronce</h2><p>entra al lakehouse en AWS: dato crudo, para auditoría</p></div></div>
+      <div><span class="dot"><i style="--c:#5f6f7e">P</i></span><div><h2>Plata</h2><p>dato validado, con el estado actual</p></div></div>
+      <div class="last"><span class="dot"><i style="--c:#9b760b">O</i></span><div><h2>Oro</h2><p>warehouse y modelo del tablero</p></div></div>
+    </div>
+    <p class="t in" style="--i:2">El mismo dato validado alimenta al <b>RTIC</b>, que publica el precio en el surtidor en menos de 5 minutos, y al <b>tablero</b>, que lo mide.</p>
+  </div>
+</section>
+
+<!-- 12 · MODELO ESTRELLA -->
+<section class="slide" data-cam="cenital" data-part="2" style="--w:820px">
+  <header><h1 class="in" style="--i:0">Modelado: un esquema estrella</h1></header>
+  <div class="face">
+    <div class="star in" style="--i:1">
+      <svg viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true"><g stroke="#6c8fb8" stroke-width="4">
+        <line x1="500" y1="350" x2="500" y2="60"/><line x1="500" y1="350" x2="860" y2="170"/><line x1="500" y1="350" x2="870" y2="440"/>
+        <line x1="500" y1="350" x2="690" y2="640"/><line x1="500" y1="350" x2="310" y2="640"/><line x1="500" y1="350" x2="130" y2="440"/><line x1="500" y1="350" x2="140" y2="170"/></g></svg>
+      <div class="f"><h2>F_CARGA_COMBUSTIBLE</h2><p>1 fila = 1 despacho en surtidor<br>m³ · importe · comisión · costo · margen</p></div>
+      <div class="d" style="left:50%;top:8.5%">D_FECHA</div>
+      <div class="d" style="left:86%;top:24%">D_HORA</div>
+      <div class="d" style="left:87%;top:63%">D_BOCA<small>SCD2</small></div>
+      <div class="d" style="left:69%;top:91%">D_PRODUCTO</div>
+      <div class="d" style="left:31%;top:91%">D_CLIENTE<small>SCD2</small></div>
+      <div class="d" style="left:13%;top:63%">D_MODALIDAD</div>
+      <div class="d" style="left:14%;top:24%">D_OPERADOR</div>
+    </div>
+    <p class="small in" style="--i:2">9 tablas de hechos con dimensiones compartidas. SCD2: si una boca pasa de Refinor a Refiplus, se guarda el antes y el después.</p>
+  </div>
+</section>
+
+<!-- 13 · CALIDAD -->
+<section class="slide" data-cam="chequeo" data-part="2" style="--w:900px">
+  <header><h1 class="in" style="--i:0">Calidad de datos: si el precio está mal, sale al surtidor</h1></header>
+  <div class="face">
+    <div class="qa">
+      <div>
+        <div class="chk" style="--i:0"><i><svg><use href="#tick"/></svg></i><h2>Precio vigente en boca</h2><em>100%</em></div>
+        <div class="chk" style="--i:1"><i><svg><use href="#tick"/></svg></i><h2>Volumen despachado</h2><em>99,7%</em></div>
+        <div class="chk" style="--i:2"><i><svg><use href="#tick"/></svg></i><h2>Horas en playa</h2><em>99,2%</em></div>
+        <div class="chk" style="--i:3"><i><svg><use href="#tick"/></svg></i><h2>Identificador de boca</h2><em>100%</em></div>
+        <div class="chk" style="--i:4"><i><svg><use href="#tick"/></svg></i><h2>Precio de la competencia</h2><em>96,4%</em></div>
+        <div class="chk" style="--i:5"><i><svg><use href="#tick"/></svg></i><h2>Paridad de importación</h2><em>100%</em></div>
+        <div class="chk" style="--i:6"><i><svg><use href="#tick"/></svg></i><h2>Cliente sin duplicados</h2><em>0,3% dup.</em></div>
+        <div class="chk" style="--i:7"><i><svg><use href="#tick"/></svg></i><h2>Formato de cada boca</h2><em>100%</em></div>
+        <div class="chk" style="--i:8"><i><svg><use href="#tick"/></svg></i><h2>Línea de factura</h2><em>99,8%</em></div>
+        <div class="chk" style="--i:9"><i><svg><use href="#tick"/></svg></i><h2>Costos conciliados</h2><em>100%</em></div>
+      </div>
+      <div>
+        <div class="a1 in" style="--i:2"><p>A1 · Dato confiable</p><div class="big">10/10</div><p>reglas cumplen su propio umbral<br>meta del indicador: ≥ 98%</p></div>
+        <ol class="steps in" style="--i:3"><li>Si una regla falla, se avisa al responsable del dato.</li><li>Tiene 1 h si es el precio y 48 h si es otro dato.</li><li>Si no se resuelve, escala al director de datos.</li></ol>
+      </div>
+    </div>
+    <p class="small in" style="--i:4">Valores de referencia del tablero diario de calidad.</p>
+  </div>
+</section>
+
+<!-- 14 · PREGUNTAS -->
+<section class="slide cover" data-cam="salida" data-part="3" style="--w:640px">
+  <header>
+    <img class="logo in" src="assets/logo-ypf.svg" alt="YPF" style="--i:0">
+    <h1 class="in" style="--i:1">¿Preguntas?</h1>
+  </header>
+  <div class="face"><p class="who in" style="--i:2">Gracias.<br><b>Franco Descalzo · Tomás Monteiro · Ignacio Siaba</b></p></div>
+</section>
+
+<div id="prog"><span data-p="0">I · Estrategia</span><span data-p="1">II · Tablero</span><span data-p="2">III · Datos</span></div>
+<div id="counter"></div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="lib/three-extras.js"></script>
+<script src="assets/logos.js"></script>
+<script src="assets/world.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
