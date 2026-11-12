@@ -57,13 +57,13 @@
   const SHOTS = {
     portada:    { pos: V(-72, 22, 72),   look: V(-28, 1, -8) },
     estacion:   { pos: V(225, 55, 110),  look: V(0, 0, 8) },
-    fuerzas:    { pos: V(-24, 158, -418.5), look: V(-24, 0, -419.5), still: true },
+    fuerzas:    { pos: V(-24, 195, -418.5), look: V(-24, 0, -419.5), still: true, shift: 0.085 },
     estrategia: { pos: V(-50, 7, 52),    look: V(-14, 3, 8) },
     refiplus:   { pos: V(-62, 4.2, 52),  look: V(-93, 3, 13) },
     nucleo:     { pos: V(40, 3.8, 38),   look: V(-8, 3, 6) },
     black:      { pos: V(157, 3.6, 39),  look: V(115, 3.5, 2) },
-    rivales:    { pos: V(-352, 5, 104),  look: V(-352, 8.5, 12) },
-    full:       { pos: V(-20.6, 2.2, -7.0), look: V(-6, 1.3, -16.5) },
+    rivales:    { pos: V(-352, 5.5, 122),  look: V(-352, 8.5, 12), shift: 0.13 },
+    full:       { pos: V(-20.6, 2.2, -7.0), look: V(-6, 1.3, -16.5), shift: 0.36 },   // shift: corre la imagen a la derecha (fracción del ancho) para que el panel ancho no la tape
     full2:      { pos: V(-1.5, 2.1, -8.0), look: V(-18, 1.4, -18) },
     carga:      { pos: V(4.8, 2.1, 9.4), look: V(-2.4, 0.95, 8.6) },
     cenital:    { pos: V(40, 36, 52),    look: V(-6, 0, 2) },
@@ -109,8 +109,9 @@
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
   /* ---------- tamaño ---------- */
+  let VW = innerWidth, VH = innerHeight, shiftNow = 0;
   function resize() {
-    const w = innerWidth, h = innerHeight;
+    const w = innerWidth, h = innerHeight; VW = w; VH = h;
     renderer.setPixelRatio(LITE ? 1 : Math.min(devicePixelRatio, 2));
     renderer.setSize(w, h, false);
     // mantener el campo horizontal de 16:9 aunque la pantalla sea 16:10 o 4:3
@@ -144,6 +145,11 @@
       camera.position.copy(s.pos).add(tmp); look.copy(s.look);
     }
     camera.lookAt(look);
+    // desplazamiento lateral de la imagen (suave entre encuadres)
+    const shiftTo = (key && SHOTS[key].shift) || 0;
+    shiftNow += (shiftTo - shiftNow) * Math.min(1, dt * 3);
+    if (Math.abs(shiftTo - shiftNow) < 0.0005) shiftNow = shiftTo;
+    if (shiftNow !== 0) camera.setViewOffset(VW, VH, -shiftNow * VW, 0, VW, VH); else camera.clearViewOffset();
     // puertas automáticas de la FULL
     const near = Math.hypot(camera.position.x - DOOR.x, camera.position.z - DOOR.z) < 7;
     const target = near ? 1.15 : 0;

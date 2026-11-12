@@ -409,25 +409,47 @@
     row(-120, 120, -60, 6, 2);                  // detrás de la YPF
     row(150, 220, -40, 9, 2);
     for (let i = 0; i < 40; i++) trees.push([-900 + rnd() * 1800, 300 + rnd() * 300, 0.8 + rnd() * 0.5]);
-    const trunkGeo = new THREE.CylinderGeometry(0.22, 0.38, 1, 7); trunkGeo.translate(0, 0.5, 0);
+    // tronco: fino, algo inclinado; copa: racimo irregular de masas de follaje facetadas
+    const trunkGeo = new THREE.CylinderGeometry(0.16, 0.34, 1, 7); trunkGeo.translate(0, 0.5, 0);
     const leafGeo = new THREE.IcosahedronGeometry(1, 1);
-    const trunks = new THREE.InstancedMesh(trunkGeo, M('#b9a88f', { r: 0.85 }), trees.length);
-    const leaves = new THREE.InstancedMesh(leafGeo, M('#4d6b4a', { r: 0.95 }), trees.length * 4);
-    const leaves2 = new THREE.InstancedMesh(leafGeo, M('#5c7a55', { r: 0.95 }), trees.length * 2);
-    const q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3();
-    trees.forEach(([x, z, s], i) => {
-      const H = 18 * s;
-      m4.compose(pv.set(x, 0, z), q.identity(), sv.set(s, H * 0.75, s)); trunks.setMatrixAt(i, m4);
-      for (let k = 0; k < 4; k++) {
-        const y = H * (0.5 + k * 0.13), r = (2.4 - k * 0.35) * s;
-        m4.compose(pv.set(x + (rnd() - 0.5) * 1.5, y, z + (rnd() - 0.5) * 1.5), q.setFromAxisAngle(sv.set(0, 1, 0), rnd() * 6), sv.set(r, r * 1.6, r));
-        leaves.setMatrixAt(i * 4 + k, m4);
+    { // deformar la esfera de forma determinista (vértices compartidos se mueven igual)
+      const pa = leafGeo.attributes.position, v = new THREE.Vector3();
+      const h = (x, y, z) => { const t = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719) * 43758.5453; return t - Math.floor(t); };
+      for (let i = 0; i < pa.count; i++) {
+        v.fromBufferAttribute(pa, i);
+        const k = 0.78 + 0.44 * h(Math.round(v.x * 100), Math.round(v.y * 100), Math.round(v.z * 100));
+        pa.setXYZ(i, v.x * k, v.y * k * 0.85, v.z * k);
       }
-      for (let k = 0; k < 2; k++) {
-        const r = 2 * s; m4.compose(pv.set(x + (rnd() - 0.5) * 3, H * (0.7 + k * 0.15), z + (rnd() - 0.5) * 3), q.identity(), sv.set(r, r, r)); leaves2.setMatrixAt(i * 2 + k, m4);
+      leafGeo.computeVertexNormals();
+    }
+    const BLOBS = 9;
+    const trunkMat = M('#8f7f6a', { r: 0.9 });
+    const leafMat = M('#ffffff', { r: 0.95 }).clone(); leafMat.flatShading = true; leafMat.needsUpdate = true;
+    const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, trees.length);
+    const leaves = new THREE.InstancedMesh(leafGeo, leafMat, trees.length * BLOBS);
+    const palette = ['#3f6140', '#4d6b4a', '#5c7a55', '#6a8a5c', '#56744a'].map(c => C(c));
+    const col = new THREE.Color(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), eul = new THREE.Euler(), ax = new THREE.Vector3(0, 1, 0);
+    trees.forEach(([x, z, s], i) => {
+      const H = 17 * s * (0.9 + rnd() * 0.25);
+      const lean = (rnd() - 0.5) * 0.12, lx = rnd() - 0.5, lz = rnd() - 0.5;
+      eul.set(lean * lz, 0, lean * lx);
+      m4.compose(pv.set(x, 0, z), q.setFromEuler(eul), sv.set(s * (0.8 + rnd() * 0.3), H * 0.85, s * (0.8 + rnd() * 0.3))); trunks.setMatrixAt(i, m4);
+      const tone = palette[(rnd() * palette.length) | 0];
+      for (let k = 0; k < BLOBS; k++) {
+        const t = k / (BLOBS - 1);                       // 0 abajo, 1 arriba
+        const y = H * (0.46 + t * 0.52 + (rnd() - 0.5) * 0.06);
+        const spread = (1.9 - t * 1.1) * s;              // copa cónica irregular
+        const a = rnd() * 6.283, d = (k === BLOBS - 1 ? 0 : spread * (0.35 + rnd() * 0.75));
+        const r = (1.5 + rnd() * 0.9 - t * 0.5) * s;
+        eul.set(rnd() * 6, rnd() * 6, rnd() * 6);
+        m4.compose(pv.set(x + Math.cos(a) * d + lean * lx * y, y, z + Math.sin(a) * d + lean * lz * y), q.setFromEuler(eul), sv.set(r, r * (1.15 + rnd() * 0.4), r));
+        leaves.setMatrixAt(i * BLOBS + k, m4);
+        col.copy(tone).offsetHSL((rnd() - 0.5) * 0.03, (rnd() - 0.5) * 0.05, (t - 0.4) * 0.05 + (rnd() - 0.5) * 0.03);
+        leaves.setColorAt(i * BLOBS + k, col);
       }
     });
-    for (const im of [trunks, leaves, leaves2]) { im.castShadow = true; im.receiveShadow = true; sc.add(im); }
+    leaves.instanceColor.needsUpdate = true;
+    for (const im of [trunks, leaves]) { im.castShadow = true; im.receiveShadow = true; sc.add(im); }
 
     // silos
     const silo = M('#cfd3d6', { r: 0.35, m: 0.7 });

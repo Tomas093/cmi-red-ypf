@@ -22,7 +22,7 @@ body{font-family:"Barlow",system-ui,sans-serif;color:var(--ink);-webkit-font-smo
 /* ================= TÓTEM (panel de contenido) =================
    Un cartel de estación: marco azul noche, franja YPF con el título,
    cara blanca con el contenido y filas tipo pizarra de precios. */
-.slide{position:absolute;left:56px;top:56px;width:var(--w,800px);max-height:888px;
+.slide{--z:1.15;zoom:var(--z);position:absolute;left:calc(56px / var(--z));top:calc(56px / var(--z));width:var(--w,800px);max-height:calc(888px / var(--z));
   display:flex;flex-direction:column;background:var(--navy);border-radius:14px;padding:10px;
   box-shadow:0 18px 40px -12px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.25);
   opacity:0;transform:translateY(18px);pointer-events:none;
@@ -90,11 +90,11 @@ p.t b{font-weight:700;color:var(--navy)}
 .rivals td.do{padding-left:18px}
 
 /* mapa estratégico */
-.map{display:grid;grid-template-columns:118px repeat(3,1fr);gap:7px 9px}
-.map .th{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:var(--ypf);text-align:center;line-height:1.1;align-self:end;padding-bottom:2px}
-.map .lab{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:var(--navy);display:flex;align-items:center;padding-left:12px;border-radius:7px}
+.map{display:grid;grid-template-columns:150px repeat(3,1fr);gap:8px 10px}
+.map .th{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:26px;color:var(--ypf);text-align:center;line-height:1.1;align-self:end;padding-bottom:2px}
+.map .lab{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:26px;color:var(--navy);display:flex;align-items:center;padding-left:12px;border-radius:7px}
 .map .c{display:flex;flex-direction:column;gap:6px;justify-content:center;border-radius:7px;padding:8px}
-.map .n{background:#fff;border:1.5px solid #2c4a6d;border-radius:6px;padding:6px 8px;font-size:17px;font-weight:600;line-height:1.18;text-align:center}
+.map .n{background:#fff;border:1.5px solid #2c4a6d;border-radius:6px;padding:7px 10px;font-size:22px;font-weight:600;line-height:1.18;text-align:center}
 .map .n b{color:var(--ypf);font-weight:800}
 .p-fin{background:#dce8f8}.p-cli{background:#dcefe2}.p-pro{background:#fbefd8}.p-apr{background:#ebe3f5}
 .map .up{grid-column:2 / span 3;display:grid;grid-template-columns:repeat(3,1fr);height:14px}
@@ -102,14 +102,14 @@ p.t b{font-weight:700;color:var(--navy)}
 
 /* indicadores */
 .kpi{width:100%;border-collapse:collapse;background:var(--led-bg);border-radius:8px}
-.kpi td{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.09);font-size:21px;line-height:1.25;vertical-align:middle;color:#d7e3ef}
+.kpi td{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.09);font-size:24px;line-height:1.25;vertical-align:middle;color:#d7e3ef}
 .kpi td:first-child{padding-left:16px}.kpi td:last-child{padding-right:16px}
 .kpi tr:last-child td{border-bottom:0}
-.kpi td.id{width:58px}
-.kpi td.id span{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:21px;color:#fff;background:var(--ypf);border-radius:5px;padding:1px 8px}
-.kpi td.ty{width:104px;font-size:17px;font-weight:600;color:#9db0c3}
-.kpi td.goal{width:140px;text-align:right;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:32px;color:var(--led);white-space:nowrap;font-variant-numeric:tabular-nums}
-.kpi td.now{width:160px;text-align:right;font-size:18px;color:#9db0c3;padding-left:12px}
+.kpi td.id{width:68px}
+.kpi td.id span{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:25px;color:#fff;background:var(--ypf);border-radius:5px;padding:1px 8px}
+.kpi td.ty{width:124px;font-size:20px;font-weight:600;color:#9db0c3}
+.kpi td.goal{width:160px;text-align:right;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:38px;color:var(--led);white-space:nowrap;font-variant-numeric:tabular-nums}
+.kpi td.now{width:200px;text-align:right;font-size:21px;color:#9db0c3;padding-left:12px}
 
 /* arquitectura */
 .flow{display:grid;grid-template-columns:44px 1fr;gap:0 16px}
@@ -175,23 +175,18 @@ p.t b{font-weight:700;color:var(--navy)}
 <div id="stage">
 
 <!-- 1 · PORTADA -->
-<section class="slide cover" data-cam="portada" data-part="0" style="--w:780px">
+<section class="slide cover" data-cam="portada" data-part="0" style="--w:780px;--z:1.15">
   <header>
     <img class="logo in" src="assets/logo-ypf.svg" alt="YPF" style="--i:0">
     <h1 class="in" style="--i:1">Cuadro de Mando Integral para la Red de Estaciones de Servicio</h1>
   </header>
   <div class="face">
     <p class="who in" style="--i:2">Trabajo Práctico Integrador · <b>Gestión Estratégica Impulsada por Datos</b><br>Universidad Austral · Facultad de Ingeniería<br><b>Franco Descalzo · Tomás Monteiro · Ignacio Siaba</b></p>
-    <div class="board in" style="--i:3">
-      <div class="r"><span class="k">Parte I</span><span class="v">ESTRATEGIA</span></div>
-      <div class="r"><span class="k">Parte II</span><span class="v">TABLERO</span></div>
-      <div class="r"><span class="k">Parte III</span><span class="v">DATOS</span></div>
-    </div>
   </div>
 </section>
 
 <!-- 2 · ESCENARIO -->
-<section class="slide" data-cam="estacion" data-part="0" style="--w:700px">
+<section class="slide" data-cam="estacion" data-part="0" style="--w:700px;--z:1.2">
   <header><h1 class="in" style="--i:0">La red YPF</h1><p class="in" style="--i:1">Resolver toda la parada del conductor en un solo lugar.</p></header>
   <div class="face">
     <div class="board in" style="--i:2">
@@ -206,7 +201,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 3 · CINCO FUERZAS -->
-<section class="slide" data-cam="fuerzas" data-part="0" style="--w:560px">
+<section class="slide" data-cam="fuerzas" data-part="0" style="--w:560px;--z:1.25">
   <header><h1 class="in" style="--i:0">¿Qué tan atractivo es el sector?</h1><p class="in" style="--i:1">Las cinco fuerzas de Porter, vistas desde arriba.</p></header>
   <div class="face">
     <p class="t in" style="--i:2">La fuerza que más pesa es la <b>rivalidad</b>: la demanda cae y 4 empresas tienen más del 90% del mercado.</p>
@@ -215,7 +210,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 4 · ESTRATEGIA -->
-<section class="slide" data-cam="estrategia" data-part="0" style="--w:700px">
+<section class="slide" data-cam="estrategia" data-part="0" style="--w:700px;--z:1.2">
   <header><h1 class="in" style="--i:0">Liderazgo general en costos</h1><p class="in" style="--i:1">YPF compite en todo el mercado y gana porque le cuesta menos, no por ser exclusiva.</p></header>
   <div class="face">
     <div class="board in" style="--i:2">
@@ -228,7 +223,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 5 · REFIPLUS -->
-<section class="slide" data-cam="refiplus" data-part="0" style="--w:640px">
+<section class="slide" data-cam="refiplus" data-part="0" style="--w:640px;--z:1.3">
   <header><h1 class="in" style="--i:0">Refiplus</h1><p class="in" style="--i:1">Bajo costo, para zonas alejadas.</p></header>
   <div class="face">
     <p class="t in" style="--i:2">Carga rápida y autodespacho, sin servicios ni infraestructura pesada.</p>
@@ -238,7 +233,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 6 · NÚCLEO -->
-<section class="slide" data-cam="nucleo" data-part="0" style="--w:640px">
+<section class="slide" data-cam="nucleo" data-part="0" style="--w:640px;--z:1.3">
   <header><h1 class="in" style="--i:0">Núcleo</h1><p class="in" style="--i:1">El formato masivo: concentra el volumen.</p></header>
   <div class="face">
     <p class="t in" style="--i:2">Playa con autodespacho, tienda FULL y Boxes.</p>
@@ -248,7 +243,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 7 · BLACK -->
-<section class="slide" data-cam="black" data-part="0" style="--w:640px">
+<section class="slide" data-cam="black" data-part="0" style="--w:640px;--z:1.3">
   <header><h1 class="in" style="--i:0">YPF Black</h1><p class="in" style="--i:1">Premium: la vitrina de la marca.</p></header>
   <div class="face">
     <p class="t in" style="--i:2">Atención en pista, tecnología y gastronomía de alta gama en unas <b>16 estaciones</b>.</p>
@@ -257,7 +252,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 8 · COMPETENCIA -->
-<section class="slide" data-cam="rivales" data-part="0" style="--w:600px">
+<section class="slide" data-cam="rivales" data-part="0" style="--w:600px;--z:1.25">
   <header><h1 class="in" style="--i:0">¿Dónde damos la pelea?</h1></header>
   <div class="face">
     <table class="rivals in" style="--i:1">
@@ -271,13 +266,13 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 9 · MAPA ESTRATÉGICO -->
-<section class="slide" data-cam="full" data-part="1" style="--w:960px">
+<section class="slide" data-cam="full" data-part="1" style="--w:1200px;--z:1.12">
   <header><h1 class="in" style="--i:0">Mapa estratégico: se lee de abajo hacia arriba</h1></header>
   <div class="face">
     <div class="map">
       <div></div><div class="th in" style="--i:1">Litro más eficiente</div><div class="th in" style="--i:1">Parada más rentable</div><div class="th in" style="--i:1">Cliente identificado</div>
       <div class="lab p-fin in" style="--i:8;grid-row:span 2">Financiera</div>
-      <div class="c p-fin in" style="--i:8;grid-column:span 3"><div class="n" style="width:380px;margin:0 auto"><b>F1</b> Aumentar el margen total de la red</div></div>
+      <div class="c p-fin in" style="--i:8;grid-column:span 3"><div class="n" style="width:480px;margin:0 auto"><b>F1</b> Aumentar el margen total de la red</div></div>
       <div class="c p-fin in" style="--i:8"><div class="n"><b>F2</b> Bajar costo por m³</div></div>
       <div class="c p-fin in" style="--i:8"><div class="n"><b>F3</b> Crecer ingresos no combustibles</div></div>
       <div class="c p-fin in" style="--i:8"><div class="n"><b>F4</b> Controlar riesgo de precio</div></div>
@@ -301,7 +296,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 10 · INDICADORES -->
-<section class="slide" data-cam="full2" data-part="1" style="--w:860px">
+<section class="slide" data-cam="full2" data-part="1" style="--w:1060px;--z:1.1">
   <header><h1 class="in" style="--i:0">16 objetivos, cada uno con su meta a diciembre de 2027</h1></header>
   <div class="face">
     <table class="kpi in" style="--i:1">
@@ -314,12 +309,11 @@ p.t b{font-weight:700;color:var(--navy)}
       <tr><td class="id"><span>P1</span></td><td>Estaciones con precio por modelo</td><td class="ty">actuación</td><td class="goal">100%</td><td class="now">Núcleo y Refiplus</td></tr>
       <tr><td class="id"><span>P4</span></td><td>Cargas con cliente identificado</td><td class="ty">actuación</td><td class="goal">55%</td><td class="now">ref. ~40% digital</td></tr>
     </table>
-    <p class="small in" style="--i:2">7 indicadores de resultado y 9 de actuación. Sin dato público, la base se mide en el 1.er trimestre de 2027.</p>
   </div>
 </section>
 
 <!-- 11 · ARQUITECTURA -->
-<section class="slide" data-cam="carga" data-part="2" style="--w:700px">
+<section class="slide" data-cam="carga" data-part="2" style="--w:700px;--z:1.2">
   <header><h1 class="in" style="--i:0">Arquitectura: el viaje de una carga</h1></header>
   <div class="face">
     <div class="flow in" style="--i:1">
@@ -334,7 +328,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 12 · MODELO ESTRELLA -->
-<section class="slide" data-cam="cenital" data-part="2" style="--w:820px">
+<section class="slide" data-cam="cenital" data-part="2" style="--w:820px;--z:1.2">
   <header><h1 class="in" style="--i:0">Modelado: un esquema estrella</h1></header>
   <div class="face">
     <div class="star in" style="--i:1">
@@ -355,7 +349,7 @@ p.t b{font-weight:700;color:var(--navy)}
 </section>
 
 <!-- 13 · CALIDAD -->
-<section class="slide" data-cam="chequeo" data-part="2" style="--w:900px">
+<section class="slide" data-cam="chequeo" data-part="2" style="--w:900px;--z:1.2">
   <header><h1 class="in" style="--i:0">Calidad de datos: si el precio está mal, sale al surtidor</h1></header>
   <div class="face">
     <div class="qa">
@@ -376,12 +370,12 @@ p.t b{font-weight:700;color:var(--navy)}
         <ol class="steps in" style="--i:3"><li>Si una regla falla, se avisa al responsable del dato.</li><li>Tiene 1 h si es el precio y 48 h si es otro dato.</li><li>Si no se resuelve, escala al director de datos.</li></ol>
       </div>
     </div>
-    <p class="small in" style="--i:4">Valores de referencia del tablero diario de calidad.</p>
+    <p class="note in" style="--i:4"><b>Ejemplo:</b> así se vería el tablero de calidad un día cualquiera.</p>
   </div>
 </section>
 
 <!-- 14 · PREGUNTAS -->
-<section class="slide cover" data-cam="salida" data-part="3" style="--w:640px">
+<section class="slide cover" data-cam="salida" data-part="3" style="--w:640px;--z:1.3">
   <header>
     <img class="logo in" src="assets/logo-ypf.svg" alt="YPF" style="--i:0">
     <h1 class="in" style="--i:1">¿Preguntas?</h1>
@@ -394,9 +388,9 @@ p.t b{font-weight:700;color:var(--navy)}
 </div>
 
 <script src="three.min.js"></script>
-<script src="lib/three-extras.js"></script>
-<script src="assets/logos.js"></script>
-<script src="assets/world.js"></script>
-<script src="assets/app.js"></script>
+<script src="lib/three-extras.js?v=20261112"></script>
+<script src="assets/logos.js?v=20261112"></script>
+<script src="assets/world.js?v=20261112"></script>
+<script src="assets/app.js?v=20261112"></script>
 </body>
 </html>
